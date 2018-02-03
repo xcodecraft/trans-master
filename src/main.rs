@@ -2,12 +2,13 @@ extern crate rand ;
 extern crate http ;
 extern crate curl ;
 extern crate json ;
-use std::io::{stdin,stdout,Write} ;
-use std::rc::Rc ;
+extern crate file ;
+
+//use std::io::{stdin,stdout,Write} ;
 use curl::easy::Easy ;
 mod xcc_conv ;
 mod market ;
-use market::{Market,TransTicket,TicketHandler,build_ticket} ;
+use market::{Market,TransTicket,build_ticket} ;
 
 
 type curl_do = fn(&[u8]) ;

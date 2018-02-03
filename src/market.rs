@@ -1,7 +1,7 @@
 //mod xcc_conv ;
 use std ;
 use json ;
-use xcc_conv::{to_val,to_u32} ;
+use xcc_conv::{key_f64,idx_f64,key_u32} ;
 use std::io::{stdin,stdout,Write} ;
 use std::rc::Rc ;
 
@@ -21,12 +21,12 @@ pub struct TransTicket
      high : f64,
      low   : f64,
      vol   : f64,
-} 
+}
 pub struct Exchange
 {
     key    : ExchangeKey,
     charge : f64,
-} 
+}
 
 struct ExcPrice
 {
@@ -47,16 +47,16 @@ pub struct Market
     datas : Option<CoinData>
 }
 
-impl Market 
+impl Market
 {
     pub fn instance() -> &'static mut Market
     {
         unsafe {
         static mut INST: Market = Market{ datas : None };
         if let None = INST.datas  {
-            let mut  cdata= CoinData{ start:0 , data : PriceVec::new() }; 
-            INST.datas = Some(cdata) ; 
-        } 
+            let mut  cdata= CoinData{ start:0 , data : PriceVec::new() };
+            INST.datas = Some(cdata) ;
+        }
         &mut INST
         }
     }
@@ -78,31 +78,49 @@ pub fn build_ticket(data : &[u8],ckey: &str) -> TransTicket
         let obj      = &response["data"] ;
         TransTicket {
             coin : String::from(ckey),
-            date : to_u32(obj,"date"),
-            last : to_val(obj,"last"),
-            buy  : to_val(obj,"buy"),
-            sell : to_val(obj,"sell"),
-            high : to_val(obj,"high"),
-            low  : to_val(obj,"low"),
-            vol  : to_val(obj,"vol"),
+            date : key_u32(obj,"date"),
+            last : key_f64(obj,"last"),
+            buy  : key_f64(obj,"buy"),
+            sell : key_f64(obj,"sell"),
+            high : key_f64(obj,"high"),
+            low  : key_f64(obj,"low"),
+            vol  : key_f64(obj,"vol"),
         }
 }
-struct TransCell {
+pub struct TransCell {
     price : f64,
-    vol   : u32 
+    vol   : f64
 }
-pub fn json_dept(data : &[u8],ckey: &str)
+
+type  TransCellVec = Vec<TransCell> ;
+pub fn json_dept(data : &[u8],ckey: &str) ->Box<TransCellVec>
 {
         let strdata  = std::str::from_utf8(data).unwrap() ;
         let jobj     = json::parse(strdata).unwrap() ;
         let jdata    = &jobj["data"] ;
         let jasks    = &jdata["asks"] ;
         let jbids    = &jdata["bids"] ;
+
+        let mut asks = Box::new(TransCellVec::new()) ;
+        match jasks {
+            &json::JsonValue::Array(ref x) =>
+            {
+                for cell in  x{
+
+                    asks.push(TransCell{price:idx_f64(&cell,0),vol: idx_f64(&cell,1) }) ;
+                }
+            },
+            _ => ()
+
+        } ;
+        return asks;
+
+
 }
 #[cfg(test)]
 mod tests {
 
-    use market::{Market,TransTicket,build_ticket} ;
+    use market::{Market,TransTicket,build_ticket,json_dept} ;
     use file ;
     #[test]
     fn json_ticket() {
@@ -114,7 +132,9 @@ mod tests {
     fn json_deep()
     {
             let string = file::get_text("./test/depth.json").unwrap() ;
+            let asks = json_dept(string.as_bytes(),"bitcoin" ) ;
             assert_eq!(string.len(),4720) ;
+            assert_eq!(asks.len(),100);
             println!("len : {}" , string.len());
 
     }

@@ -8,17 +8,19 @@ extern crate file ;
 use curl::easy::Easy ;
 mod xcc_conv ;
 mod market ;
-use market::{Market,TransTicket,build_ticket} ;
+mod bitz ;
+mod okex ;
+use market::{Market,TransTicket,Unification} ;
 
 
 type curl_do = fn(&[u8]) ;
 fn  work_ticket(data:&[u8])
 {
-   let ticket = build_ticket(data,"bitcoin") ;
-   Market::instance().receive(ticket) ;
+   // let ticket = build_ticket(data,"bitcoin") ;
+   // Market::instance().receive(ticket) ;
     //println!("data: {} \n {:?} " , std::str::from_utf8(data).unwrap(),ticket) ;
 }
-fn curl(url : &str , func : curl_do  ) 
+fn curl(url : &str , func : curl_do  )
 {
     let mut easy = Easy::new() ;
     easy.url(url).unwrap();
@@ -29,7 +31,7 @@ fn curl(url : &str , func : curl_do  )
         })
     }).unwrap() ;
     easy.perform().unwrap() ;
-} 
+}
 fn main() {
     println!("Hello, world!");
 

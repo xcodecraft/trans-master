@@ -64,7 +64,7 @@ mod tests {
     #[test]
     fn to_dept()
     {
-            let api        = OkexApi{} ;
+            let api         = OkexApi{} ;
             let path        = "./test/okex_dept.json" ;
             let string      = file::get_text(path).expect( path) ;
             let (asks,bids) = api.to_dept(string.as_bytes(),"bitcoin" ) ;

@@ -10,14 +10,16 @@ mod xcc_conv ;
 mod market ;
 mod bitz ;
 mod okex ;
-use market::{Market,TransTicket,Unification} ;
+use market::{Market,TransTicket,Unification, ExchangeDept} ;
 
 
 type curl_do = fn(&[u8]) ;
 fn  work_ticket(data:&[u8])
 {
+
    // let ticket = build_ticket(data,"bitcoin") ;
-   // Market::instance().receive(ticket) ;
+    let api = bitz::BitzApi{} ;
+    Market::instance().receive(api) ;
     //println!("data: {} \n {:?} " , std::str::from_utf8(data).unwrap(),ticket) ;
 }
 fn curl(url : &str , func : curl_do  )

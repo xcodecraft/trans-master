@@ -1,7 +1,6 @@
 use std ;
 use json ;
 use xcc_conv::{key_f64,idx_f64,key_u32} ;
-use std::rc::Rc ;
 
 enum ExchangeKey
 {
@@ -32,17 +31,48 @@ struct ExcPrice
     price  : f64
 }
 
-pub struct CoinData
+pub struct TransCell {
+    pub price : f64,
+    pub vol   : f64
+}
+
+pub type  TransCellVec = Vec<TransCell> ;
+pub type  TCellvecPtr  = Box<Vec<TransCell>> ;
+
+pub enum CoinType
+{
+    Btc  ,
+    Ltc  ,
+    Eos  ,
+    Ustd ,
+}
+pub struct  ExchangeDept
+{
+    pub coin : CoinType ,
+    pub asks : TCellvecPtr ,
+    pub bids : TCellvecPtr ,
+}
+type DeptPtr = Box<ExchangeDept> ;
+
+pub struct TickDepts
 {
     start : u32,
-    data  : Vec< ExcPrice >
+    data  : Vec<DeptPtr>
 }
-type  TicketVec     =  Vec< TransTicket> ;
+type  TicketVec     =  Vec<TransTicket> ;
 type  PriceVec      =  Vec<ExcPrice> ;
+
+
+pub trait Unification {
+        fn name(&self) -> String ;
+        fn fetch_dept(&self) -> Box<ExchangeDept> ;
+        //fn to_ticket (&self, data : &[u8],ckey: &str) -> TransTicket ;
+        //fn to_dept(&self,data : &[u8],ckey: &str) -> (Box<TransCellVec>,Box<TransCellVec>) ;
+}
 
 pub struct Market
 {
-    datas : Option<CoinData>
+    datas : Option<TickDepts>
 }
 
 impl Market
@@ -52,33 +82,28 @@ impl Market
         unsafe {
         static mut INST: Market = Market{ datas : None };
         if let None = INST.datas  {
-            let mut  cdata= CoinData{ start:0 , data : PriceVec::new() };
+            let mut  cdata= TickDepts{ start:0 , data : Vec::new() };
             INST.datas = Some(cdata) ;
         }
         &mut INST
         }
     }
-    pub fn receive(&mut self, ticket :TransTicket )
+    pub fn receive<T:Unification>(&mut self, api : T)
     {
+        let name = api.name() ;
+        let data = api.fetch_dept();
+
+        //api.to_dept
         //ensure_mut(&self.datas).push(ticket) ;
         //self.datas.as_mut().unwrap().push(ticket) ;
-        //let vec : &mut TicketHVec = self.datas.as_mut().unwrap();
-        self.datas.as_mut().unwrap().data.push(ExcPrice{key:ExchangeKey::Bitz, price : ticket.last })
+        let depts : &mut TickDepts = self.datas.as_mut().unwrap();
+        depts.data.push(data )
+        //self.datas.as_mut().unwrap().data.push(ExcPrice{key:ExchangeKey::Bitz, price : ticket.last })
        //vec.push(ticket) ;
         //println!("len: {}", vec.len()) ;
     }
 }
 
-pub struct TransCell {
-    pub price : f64,
-    pub vol   : f64
-}
-
-pub type  TransCellVec = Vec<TransCell> ;
-pub trait Unification {
-      fn to_ticket (&self, data : &[u8],ckey: &str) -> TransTicket ;
-      fn to_dept(&self,data : &[u8],ckey: &str) -> (Box<TransCellVec>,Box<TransCellVec>) ;
-}
 
 
 #[cfg(test)]

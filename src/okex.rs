@@ -1,6 +1,6 @@
 use std ;
 use json ;
-use market::{ Market, Unification,TransTicket,TransCell, TransCellVec} ;
+use market::{ Market, Unification,TransTicket,TransCell, TransCellVec,ExchangeDept,CoinType} ;
 use xcc_conv::{key_f64,idx_f64,key_u32} ;
 
 
@@ -10,6 +10,23 @@ pub struct OkexApi
 }
 impl Unification for OkexApi
 {
+    fn fetch_dept(&self) -> Box<ExchangeDept> 
+    {
+        Box::new(ExchangeDept{coin: CoinType::Btc, 
+            asks: Box::new(TransCellVec::new()) , 
+            bids : Box::new(TransCellVec::new()) })
+    }
+
+    fn name(&self) -> String 
+    {
+        return String::from("okex") ;
+
+    }
+}
+
+impl OkexApi
+{
+
   fn to_ticket(&self,data : &[u8],ckey: &str) -> TransTicket
   {
     let strdata  = std::str::from_utf8(data).unwrap() ;

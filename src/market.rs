@@ -63,7 +63,7 @@ type  TicketVec     =  Vec<TransTicket> ;
 type  PriceVec      =  Vec<ExcPrice> ;
 
 
-pub trait Unification {
+pub trait ExchangeAPI {
         fn name(&self) -> String ;
         fn fetch_dept(&self) -> Box<ExchangeDept> ;
         //fn to_ticket (&self, data : &[u8],ckey: &str) -> TransTicket ;
@@ -88,19 +88,13 @@ impl Market
         &mut INST
         }
     }
-    pub fn receive<T:Unification>(&mut self, api : T)
+    pub fn receive<T:ExchangeAPI>(&mut self, api : T)
     {
         let name = api.name() ;
         let data = api.fetch_dept();
 
-        //api.to_dept
-        //ensure_mut(&self.datas).push(ticket) ;
-        //self.datas.as_mut().unwrap().push(ticket) ;
         let depts : &mut TickDepts = self.datas.as_mut().unwrap();
         depts.data.push(data )
-        //self.datas.as_mut().unwrap().data.push(ExcPrice{key:ExchangeKey::Bitz, price : ticket.last })
-       //vec.push(ticket) ;
-        //println!("len: {}", vec.len()) ;
     }
 }
 

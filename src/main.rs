@@ -10,7 +10,8 @@ mod xcc_conv ;
 mod market ;
 mod bitz ;
 mod okex ;
-use market::{Market,TransTicket,Unification, ExchangeDept} ;
+mod tcurl ;
+use market::{Market,TransTicket,ExchangeAPI, ExchangeDept} ;
 
 
 type curl_do = fn(&[u8]) ;

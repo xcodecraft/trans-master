@@ -1,19 +1,25 @@
 use std ;
 use json ;
 use file ;
-use market::{ Market, Unification,TransTicket,TransCell, TransCellVec,ExchangeDept,CoinType} ;
+use market::{ Market, ExchangeAPI,TransTicket,TransCell, TransCellVec,ExchangeDept,CoinType} ;
 use xcc_conv::{key_f64,idx_f64,key_u32} ;
+use tcurl ;
 
 
 pub struct BitzApi
 {
+//    const dept_url = "https://www.bit-z.com/api_v1/ticker?coin=mzc_btc" ;
 
 }
 impl BitzApi
-//impl Unification for BitzApi
+//impl ExchangeAPI for BitzApi
 {
-    fn fetch_dept_impl(&self) -> Box<ExchangeDept> 
+    fn fetch_dept_impl(&self,data : &[u8],ckey: &st) -> Box<ExchangeDept>
     {
+
+        let url = "https://www.bit-z.com/api_v1/ticker?coin=mzc_btc" ;
+        let func = | | { self.fetch_dept_impl }
+        tcurl::curl( &url,func) ;
 
         let bapi        = BitzApi{} ;
         let path        = "./test/bitz_dept.json" ;
@@ -41,6 +47,8 @@ impl BitzApi
     }
 
     fn to_dept(&self,data : &[u8],ckey: &str) ->(Box<TransCellVec>,Box<TransCellVec>)
+
+Box<ExchangeDept>
     {
         let strdata  = std::str::from_utf8(data).unwrap() ;
         let jobj     = json::parse(strdata).unwrap() ;
@@ -62,21 +70,26 @@ impl BitzApi
 
         } ;
         return (asks,bids) ;
+        Box::new(ExchangeDept{ coin: CoinType::Btc,asks,bids  })
 
     }
 
 }
-impl Unification for BitzApi
+impl ExchangeAPI for BitzApi
 {
 
-    fn name(&self) -> String 
+    fn name(&self) -> String
     {
         return String::from("bitz") ;
 
     }
-    fn fetch_dept(&self) -> Box<ExchangeDept> 
+    fn fetch_dept(&self) -> Box<ExchangeDept>
     {
-       self.fetch_dept_impl()
+
+        let url = "https://www.bit-z.com/api_v1/ticker?coin=mzc_btc" ;
+        let func = self.fetch_dept_impl()  ;
+        let func = | | { self.fetch_dept_impl }
+        tcurl::curl( &url,func) ;
 
     }
 
@@ -87,7 +100,7 @@ mod tests {
 
     use file ;
     use bitz::BitzApi ;
-    use market::Unification ;
+    use market::ExchangeAPI ;
     #[test]
     fn json_ticket() {
         let json_str= "{\"code\":0,\"msg\":\"Success\",\"data\":{\"date\":1517585637,\"last\":\"0.00085393\", \"buy\":\"0.00085365\",\"sell\":\"0.00085422\",\"high\":\"0.00085421\",\"low\":\"0.00085365\",\"vol\":\"79309.7572\"}}" ;
@@ -101,6 +114,7 @@ mod tests {
         let bapi        = BitzApi{} ;
         let path        = "./test/bitz_dept.json" ;
         let string      = file::get_text(path).expect( path) ;
+        let data        = bapi.fetch_dept_impl(string.as_bytes(),)
         let (asks,bids) = bapi.to_dept(string.as_bytes(),"bitcoin" ) ;
         assert_eq!(string.len(),4720) ;
         assert_eq!(asks.len(),100);

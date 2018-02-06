@@ -4,6 +4,7 @@ use file ;
 use market::{ Market, ExchangeAPI,TransTicket,TransCell, TransCellVec,ExchangeDept,CoinType} ;
 use xcc_conv::{key_f64,idx_f64,key_u32} ;
 use tcurl ;
+use std::borrow::Borrow;
 
 
 pub struct BitzApi
@@ -14,20 +15,6 @@ pub struct BitzApi
 impl BitzApi
 //impl ExchangeAPI for BitzApi
 {
-    fn fetch_dept_impl(&self,data : &[u8],ckey: &st) -> Box<ExchangeDept>
-    {
-
-        let url = "https://www.bit-z.com/api_v1/ticker?coin=mzc_btc" ;
-        let func = | | { self.fetch_dept_impl }
-        tcurl::curl( &url,func) ;
-
-        let bapi        = BitzApi{} ;
-        let path        = "./test/bitz_dept.json" ;
-        let string      = file::get_text(path).expect( path) ;
-        let (asks,bids) = self.to_dept(string.as_bytes(),"bitcoin" ) ;
-
-        Box::new(ExchangeDept{ coin: CoinType::Btc,asks,bids  })
-    }
 
     fn to_ticket(&self,data : &[u8],ckey: &str) -> TransTicket
     {
@@ -46,9 +33,7 @@ impl BitzApi
         }
     }
 
-    fn to_dept(&self,data : &[u8],ckey: &str) ->(Box<TransCellVec>,Box<TransCellVec>)
-
-Box<ExchangeDept>
+    fn to_dept(&self,data : &[u8],ckey: &str) -> Box<ExchangeDept>
     {
         let strdata  = std::str::from_utf8(data).unwrap() ;
         let jobj     = json::parse(strdata).unwrap() ;
@@ -69,7 +54,7 @@ Box<ExchangeDept>
             _ => ()
 
         } ;
-        return (asks,bids) ;
+        
         Box::new(ExchangeDept{ coin: CoinType::Btc,asks,bids  })
 
     }
@@ -86,11 +71,9 @@ impl ExchangeAPI for BitzApi
     fn fetch_dept(&self) -> Box<ExchangeDept>
     {
 
-        let url = "https://www.bit-z.com/api_v1/ticker?coin=mzc_btc" ;
-        let func = self.fetch_dept_impl()  ;
-        let func = | | { self.fetch_dept_impl }
-        tcurl::curl( &url,func) ;
-
+        let url    = "https://www.bit-z.com/api_v1/ticker?coin=mzc_btc" ;
+        let data = tcurl::curl( &url) ;
+        self.to_dept(data.as_slice(),"coin") 
     }
 
 }
@@ -114,21 +97,23 @@ mod tests {
         let bapi        = BitzApi{} ;
         let path        = "./test/bitz_dept.json" ;
         let string      = file::get_text(path).expect( path) ;
-        let data        = bapi.fetch_dept_impl(string.as_bytes(),)
-        let (asks,bids) = bapi.to_dept(string.as_bytes(),"bitcoin" ) ;
+        let dept = bapi.to_dept(string.as_bytes(),"bitcoin" ) ;
         assert_eq!(string.len(),4720) ;
-        assert_eq!(asks.len(),100);
+        assert_eq!(dept.asks.len(),100);
         println!("len : {}" , string.len());
 
     }
-
     #[test]
     fn do_fetch_dept()
     {
         let api        = BitzApi{} ;
-        api.fetch_dept_impl();
+        let dept = api.fetch_dept() ;
+        assert_eq!(dept.asks.len(),100);
+
+
 
     }
+
 }
 
 

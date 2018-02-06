@@ -3,6 +3,8 @@ extern crate http ;
 extern crate curl ;
 extern crate json ;
 extern crate file ;
+#[macro_use]
+extern crate log ;
 
 //use std::io::{stdin,stdout,Write} ;
 use curl::easy::Easy ;

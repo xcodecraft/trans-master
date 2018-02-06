@@ -1,24 +1,26 @@
 extern crate http ;
 extern crate curl ;
 use curl::easy::Easy ;
+use std::rc::Rc ;
 
-
-type write_data_fun = fn(&[u8]) ;
-fn  work_ticket(data:&[u8])
+pub type VecPtr  = Box<Vec<u8>> ;
+//pub fn curl(url : &str ) -> Vec<u8> 
+pub fn curl(url : &str ) -> VecPtr
 {
+    let mut dataVec = VecPtr::new(Vec::new()) ;
+    let mut handle = Easy::new();
+    handle.url(url).unwrap();
+    {
+        let mut transfer = handle.transfer();
+        transfer.write_function( |new_data| {
+            dataVec.extend_from_slice(new_data) ;
+            debug!("fetch url:{} len:{}",url,new_data.len()) ;
+            Ok(new_data.len())
+        }).unwrap() ;
 
-    let api = bitz::BitzApi{} ;
-    Market::instance().receive(api) ;
-}
-fn curl(url : &str , func : write_data_fun)
-{
-    let mut easy = Easy::new() ;
-    easy.url(url).unwrap();
-    easy.write_function( move |data| {
-        Ok({
-            func(&data) ;
-            data.len()
-        })
-    }).unwrap() ;
-    easy.perform().unwrap() ;
+        transfer.perform().unwrap() ;
+    }
+
+    return dataVec ;
+
 }

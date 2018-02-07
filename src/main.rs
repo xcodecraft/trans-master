@@ -13,36 +13,27 @@ mod market ;
 mod bitz ;
 mod okex ;
 mod tcurl ;
-use market::{Market,TransTicket,ExchangeAPI, ExchangeDept} ;
+mod uselog ;
 
 
-type curl_do = fn(&[u8]) ;
-fn  work_ticket(data:&[u8])
-{
-
-   // let ticket = build_ticket(data,"bitcoin") ;
-    let api = bitz::BitzApi{} ;
-    Market::instance().receive(api) ;
-    //println!("data: {} \n {:?} " , std::str::from_utf8(data).unwrap(),ticket) ;
-}
-fn curl(url : &str , func : curl_do  )
-{
-    let mut easy = Easy::new() ;
-    easy.url(url).unwrap();
-    easy.write_function( move |data| {
-        Ok({
-            func(&data) ;
-            data.len()
-        })
-    }).unwrap() ;
-    easy.perform().unwrap() ;
-}
 fn main() {
+    uselog::init_log() ;
+    debug!("program start ....") ;
     println!("Hello, world!");
-
-    let url = "https://www.bit-z.com/api_v1/ticker?coin=mzc_btc" ;
-    let func = work_ticket ;
-    curl( &url,func) ;
-    curl( &url,func) ;
-    curl( &url,func) ;
 }
+
+
+#[cfg(test)]
+mod tests {
+
+    use uselog;
+    #[test]
+    fn do_main()
+    {
+        uselog::init_log() ;
+
+    }
+
+}
+
+
